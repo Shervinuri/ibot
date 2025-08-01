@@ -136,55 +136,69 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const chatForm = document.getElementById('chat-form');
-            const userInput = document.getElementById('user-input');
-            const chatHistory = document.getElementById('chat-history');
-            const sendButton = chatForm.querySelector('button');
-            const loadingIndicator = document.getElementById('loading-indicator');
+    document.addEventListener('DOMContentLoaded', () => {
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const chatHistory = document.getElementById('chat-history');
+        const sendButton = chatForm.querySelector('button');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        let isFirstMessage = true;
 
-            const addMessageToChat = (message, sender) => {
-                const messageDiv = document.createElement('div');
-                messageDiv.classList.add('message', sender);
-                messageDiv.textContent = message;
-                chatHistory.prepend(messageDiv);
-            };
+        const addMessageToChat = (message, sender) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender);
+            messageDiv.textContent = message;
+            chatHistory.prepend(messageDiv);
+        };
 
-            chatForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-                const userMessage = userInput.value.trim();
-                if (!userMessage) return;
+            const userMessage = userInput.value.trim();
+            if (!userMessage) return;
 
-                addMessageToChat(userMessage, 'user');
-                userInput.value = '';
-                sendButton.disabled = true;
-                loadingIndicator.style.display = 'block';
+            addMessageToChat(userMessage, 'user');
+            userInput.value = '';
+            sendButton.disabled = true;
+            loadingIndicator.style.display = 'block';
 
-                try {
-                    const response = await fetch('/.netlify/functions/chat', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userMessage })
-                    });
+            try {
+                // دریافت IP کاربر و ساعت فعلی
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                const userIp = ipData.ip;
+                
+                const currentTime = new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit', hour12: false });
+                
+                const response = await fetch('/.netlify/functions/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userMessage,
+                        userIp,
+                        currentTime,
+                        isFirstMessage
+                    })
+                });
 
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        addMessageToChat(data.response, 'bot');
-                    } else {
-                        addMessageToChat('متأسفانه یجایی یه بگایی رخ داده.', 'bot');
-                        console.error('Error from Netlify Function:', data);
-                    }
-                } catch (error) {
-                    console.error('Network or API error:', error);
-                    addMessageToChat('اتصال به چوخ رفته چشاتو وا کن ببین همه چیت وصله یا چی!؟ .', 'bot');
-                } finally {
-                    sendButton.disabled = false;
-                    loadingIndicator.style.display = 'none';
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addMessageToChat(data.response, 'bot');
+                } else {
+                    addMessageToChat('متأسفانه خطایی رخ داد.', 'bot');
+                    console.error('Error from Netlify Function:', data);
                 }
-            });
+            } catch (error) {
+                console.error('Network or API error:', error);
+                addMessageToChat('متأسفانه خطایی در ارتباط رخ داد.', 'bot');
+            } finally {
+                sendButton.disabled = false;
+                loadingIndicator.style.display = 'none';
+                isFirstMessage = false;
+            }
         });
-    </script>
+    });
+</script>
 </body>
 </html>
