@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ROBO☬SHΞN™ - Direct Path</title>
+    <title>ROBO☬SHΞN™ - Direct Path (Fixed)</title>
     <style>
         :root {
             --eye-color: #00eaff; --eye-glow-color: rgba(0, 234, 255, 0.5); --frame-border-color: #333333;
@@ -30,11 +30,9 @@
         #robot-wrapper {
             position: absolute;
             left: 50%;
-            /* موقعیت اولیه: کاملا در مرکز */
             top: 50%;
             transform: translate(-50%, -50%);
             z-index: 10;
-            /* انیمیشن مستقیم با تغییر top */
             transition: top 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
@@ -44,12 +42,10 @@
             max-width: 600px;
             left: 50%;
             transform: translateX(-50%);
-            /* موقعیت اولیه: دقیقا زیر ربات */
             top: calc(50% + 35vmin); 
             z-index: 5;
             display: flex;
             justify-content: center;
-            /* انیمیشن هماهنگ با ربات */
             transition: top 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -74,11 +70,9 @@
 
         /* اعمال انیمیشن‌ها با کلاس .intro-played */
         .intro-played #robot-wrapper {
-            /* موقعیت نهایی: بالای صفحه، با حفظ مرکزیت افقی */
             top: calc(20px + 35vmin);
         }
         .intro-played #chat-container-wrapper {
-            /* موقعیت نهایی کادر چت: دقیقا زیر ربات */
             top: calc(20px + 70vmin - 120px);
         }
         .intro-played #chat-container {
@@ -91,13 +85,18 @@
         }
 
         /* --- استایل‌های چیدمان نهایی (بعد از انیمیشن) --- */
-        body.layout-settled {
+        /* اصلاح کلیدی: فعال‌سازی اسکرول برای هر دو تگ html و body */
+        html.layout-settled, body.layout-settled {
             overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        body.layout-settled {
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px 10px;
-            height: auto;
+            height: auto; /* ارتفاع باید خودکار باشد تا محتوا جا شود */
         }
         body.layout-settled #app-container {
             position: static;
@@ -132,7 +131,7 @@
             opacity: 1;
         }
         body.layout-settled .footer {
-            position: static;
+            position: static; /* فوتر به جریان عادی صفحه بازمی‌گردد */
             margin-top: 20px;
         }
 
@@ -176,8 +175,7 @@
     <div id="rotate-overlay"><div><h2>لطفاً دستگاه خود را به حالت عمودی بچرخانید</h2><p>این صفحه برای نمایش عمودی بهینه شده است.</p></div></div>
     
     <div id="app-container">
-        <div id="intro-overlay"> ناموساً دو دقیقه اومدیم بخوابیم بیدارمون نکن <span>  
-    </span></div>
+        <div id="intro-overlay"><span>ناموساً دو دقیقه اومدیم بخوابیم بیدارمون نکن</span></div>
         <div id="robot-wrapper">
             <div class="robot-container"><div class="robot-frame"><canvas id="faceCanvas" width="300" height="300"></canvas><div class="engraved-text">ROBO☬SHΞN™</div></div></div>
         </div>
@@ -243,6 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
             appContainer.classList.add('intro-played');
             // زمان‌بندی برای تغییر چیدمان پس از اتمام انیمیشن
             setTimeout(() => {
+                // اصلاح کلیدی: افزودن کلاس به هر دو تگ html و body
+                document.documentElement.classList.add('layout-settled');
                 document.body.classList.add('layout-settled');
                 footer.textContent = 'Exclusive ☬ SHΞN™';
             }, 3500); // این زمان باید با طول کل انیمیشن CSS هماهنگ باشد
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const headers={'Content-Type':'application/json'};if(isFirstMessage)headers['X-First-Message']='true';
             const response=await fetch('/.netlify/functions/chat',{method:'POST',headers:headers,body:JSON.stringify({userMessage,userIp:ipData.ip,currentTime:new Date().toLocaleTimeString('fa-IR')})});
             const data=await response.json();
-            if(response.ok)addMessageToChat(data.response,'bot');else{addMessageToChat('  یه جای کار می‌لنگه الان به شروین می‌گم درست کنه.','bot');console.error('Error:',data);}
+            if(response.ok)addMessageToChat(data.response,'bot');else{addMessageToChat(' یه جای کار می‌لنگه الان به شروین می‌گم درست کنه.','bot');console.error('Error:',data);}
         } catch (error){console.error('Error:',error);addMessageToChat('اندکی بگایی در اتصالات کشف شد اینترنت خودتو چک کن.','bot');}
         finally {sendButton.disabled=false;loadingIndicator.style.display='none';face.stopThinking();isFirstMessage=false;}
     });
