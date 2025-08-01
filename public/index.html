@@ -3,29 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>چت بات با Groq و Netlify</title>
+    <title> SHΞЯVIИ Ai </title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f0f2f5; }
-        #chat-container { width: 80%; max-width: 600px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding: 20px; }
-        #chat-history { height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 4px; display: flex; flex-direction: column-reverse; }
-        .message { margin-bottom: 10px; padding: 8px 12px; border-radius: 12px; max-width: 70%; word-wrap: break-word; }
-        .user { background-color: #007bff; color: #fff; align-self: flex-end; }
-        .bot { background-color: #e9ecef; color: #000; align-self: flex-start; }
-        #chat-form { display: flex; }
-        #user-input { flex-grow: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-left: 10px; }
-        button { padding: 10px 20px; background-color: #28a745; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
-        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        #chat-container {
+            width: 90%;
+            max-width: 700px;
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            padding: 24px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        h1 {
+            color: #b3b3b3;
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+        #chat-history {
+            height: 450px;
+            overflow-y: auto;
+            border: 1px solid #333;
+            background-color: #242424;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 10px;
+        }
+        .message {
+            padding: 12px 18px;
+            border-radius: 20px;
+            max-width: 80%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-in-out;
+            position: relative;
+        }
+        .user {
+            background-color: #0056b3;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .bot {
+            background-color: #444;
+            color: #f0f0f0;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        #chat-form {
+            display: flex;
+            gap: 10px;
+        }
+        #user-input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #333;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        #user-input:focus {
+            border-color: #007bff;
+        }
+        button {
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        #loading-indicator {
+            align-self: center;
+            margin-top: 10px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            animation: spin 1s linear infinite;
+            display: none; /* به صورت پیش فرض مخفی است */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
     <div id="chat-container">
         <h1>چت بات Groq</h1>
         <div id="chat-history"></div>
+        <div id="loading-indicator"></div>
         <form id="chat-form">
-            <input type="text" id="user-input" placeholder="پیام خود را بنویسید..." autocomplete="off">
-            <button type="submit">ارسال</button>
+            <input type="text" id="user-input" placeholder="بنال بینم دیگه چی میخوای..." autocomplete="off">
+            <button type="submit">🖕🏻</button>
         </form>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatForm = document.getElementById('chat-form');
+            const userInput = document.getElementById('user-input');
+            const chatHistory = document.getElementById('chat-history');
+            const sendButton = chatForm.querySelector('button');
+            const loadingIndicator = document.getElementById('loading-indicator');
+
+            const addMessageToChat = (message, sender) => {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', sender);
+                messageDiv.textContent = message;
+                chatHistory.prepend(messageDiv);
+            };
+
+            chatForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const userMessage = userInput.value.trim();
+                if (!userMessage) return;
+
+                addMessageToChat(userMessage, 'user');
+                userInput.value = '';
+                sendButton.disabled = true;
+                loadingIndicator.style.display = 'block';
+
+                try {
+                    const response = await fetch('/.netlify/functions/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userMessage })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        addMessageToChat(data.response, 'bot');
+                    } else {
+                        addMessageToChat('متأسفانه یجایی یه بگایی رخ داده.', 'bot');
+                        console.error('Error from Netlify Function:', data);
+                    }
+                } catch (error) {
+                    console.error('Network or API error:', error);
+                    addMessageToChat('اتصال به چوخ رفته چشاتو وا کن ببین همه چی وصله یا نه!؟ .', 'bot');
+                } finally {
+                    sendButton.disabled = false;
+                    loadingIndicator.style.display = 'none';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
