@@ -3,256 +3,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ROBO☬SHΞN™ - Final Core</title>
+    <title>ROBO☬SHΞN™ - Direct Path</title>
     <style>
         :root {
-            --eye-color: #00eaff;
-            --eye-glow-color: rgba(0, 234, 255, 0.5);
-            --frame-border-color: #333333;
-            --background-dark: #000000;
-            --background-medium: #1a1a1a;
-            --background-screen: #050505;
-            --text-light: #e0e0e0;
-            --text-dark: #000000;
-            --text-placeholder: #888;
+            --eye-color: #00eaff; --eye-glow-color: rgba(0, 234, 255, 0.5); --frame-border-color: #333333;
+            --background-dark: #000000; --background-medium: #1a1a1a; --background-screen: #050505;
+            --text-light: #e0e0e0; --text-dark: #000000; --text-placeholder: #888;
         }
-
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-
+        
         body, html {
             margin: 0; padding: 0; height: 100%; width: 100%;
             background-color: var(--background-dark);
-            /* --- اصلاح کلیدی برای فعال کردن اسکرول --- */
-            overflow-x: hidden;
-            overflow-y: auto;
+            overflow: hidden; /* اسکرول در ابتدا قفل است */
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: var(--text-light);
+            transition: transform 0.5s ease-in-out, filter 0.5s ease-in-out;
+        }
+        
+        #app-container {
+            width: 100%; height: 100%;
+            position: relative;
+        }
+
+        /* --- استایل‌های حالت اولیه (برای انیمیشن) --- */
+        #robot-wrapper {
+            position: absolute;
+            left: 50%;
+            /* موقعیت اولیه: کاملا در مرکز */
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            /* انیمیشن مستقیم با تغییر top */
+            transition: top 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        #chat-container-wrapper {
+            position: absolute;
+            width: 95%;
+            max-width: 600px;
+            left: 50%;
+            transform: translateX(-50%);
+            /* موقعیت اولیه: دقیقا زیر ربات */
+            top: calc(50% + 35vmin); 
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            /* انیمیشن هماهنگ با ربات */
+            transition: top 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #chat-container {
+            width: 100px;
+            height: 0px;
+            background-color: rgba(26, 26, 26, 0.9);
+            border: 2px solid var(--frame-border-color);
+            border-radius: 12px;
+            box-shadow: 0 0 25px rgba(0, 234, 255, 0.2);
+            opacity: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        #chat-content { opacity: 0; }
+
+        /* --- انیمیشن‌های مرحله‌ای --- */
+        @keyframes container-descend { to { height: 500px; } }
+        @keyframes container-expand { to { width: 100%; } }
+        @keyframes content-fade-in { to { opacity: 1; } }
+
+        /* اعمال انیمیشن‌ها با کلاس .intro-played */
+        .intro-played #robot-wrapper {
+            /* موقعیت نهایی: بالای صفحه، با حفظ مرکزیت افقی */
+            top: calc(20px + 35vmin);
+        }
+        .intro-played #chat-container-wrapper {
+            /* موقعیت نهایی کادر چت: دقیقا زیر ربات */
+            top: calc(20px + 70vmin - 120px);
+        }
+        .intro-played #chat-container {
+            opacity: 1;
+            animation: container-descend 1s cubic-bezier(0.4, 0, 0.2, 1) 1.2s forwards,
+                       container-expand 1s cubic-bezier(0.4, 0, 0.2, 1) 2.2s forwards;
+        }
+        .intro-played #chat-content {
+            animation: content-fade-in 0.8s ease-out 3.2s forwards;
+        }
+
+        /* --- استایل‌های چیدمان نهایی (بعد از انیمیشن) --- */
+        body.layout-settled {
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px 10px;
-            transition: transform 0.5s ease-in-out, filter 0.5s ease-in-out;
+            height: auto;
         }
-        
-        /* --- کلاس‌های مجازات --- */
-        body.punishment-rotate { transform: rotate(180deg); }
-        body.punishment-blur { filter: blur(8px); }
-        @keyframes shake {
-            0%, 100% { transform: translate(0, 0); } 10% { transform: translate(-2px, -3px); } 20% { transform: translate(3px, 2px); }
-            30% { transform: translate(-3px, 3px); } 40% { transform: translate(2px, -2px); } 50% { transform: translate(-3px, 2px); }
-            60% { transform: translate(3px, 3px); } 70% { transform: translate(-2px, -3px); } 80% { transform: translate(3px, -2px); }
-            90% { transform: translate(-2px, 3px); }
+        body.layout-settled #app-container {
+            position: static;
+            display: contents;
         }
-        body.punishment-shake > * { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
-
-
-        /* --- استایل‌های ربات --- */
-        .robot-container {
-            position: relative; display: flex; justify-content: center; align-items: center;
-            width: 70vmin; height: 70vmin; max-width: 280px; max-height: 280px;
-            flex-shrink: 0; z-index: 10;
-        }
-        .robot-frame {
-            width: 100%; height: 100%;
-            background: linear-gradient(145deg, #2a2a2a, var(--background-medium));
-            border-radius: 22%;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.5), 10px 10px 30px #0a0a0a, -10px -10px 30px #202020;
-            display: flex; align-items: center; justify-content: center; position: relative;
-        }
-        #faceCanvas { width: 80%; height: 75%; cursor: pointer; }
-        .engraved-text {
-            position: absolute; bottom: 4.5%; left: 0; right: 0;
-            text-align: center; font-size: clamp(10px, 4vmin, 18px); font-weight: bold;
-            color: #252525; text-shadow: 1px 1px 1px #111, 0 0 0 #000, 0px 0px 3px #111;
-            letter-spacing: 2px; pointer-events: none;
-        }
-
-        /* --- استایل‌های چت‌بات --- */
-        #main-content {
-            display: flex; flex-direction: column; align-items: center;
+        body.layout-settled #robot-wrapper,
+        body.layout-settled #chat-container-wrapper {
+            position: static;
+            transform: none !important;
             width: 100%;
-            /* حذف ارتفاع ثابت برای اجازه به اسکرول طبیعی */
+            height: auto;
+            top: auto; left: auto;
+            display: flex;
+            justify-content: center;
         }
-        #chat-container {
-            width: 100%; max-width: 600px;
-            background-color: rgba(26, 26, 26, 0.8);
-            border: 2px solid var(--frame-border-color);
-            border-radius: 12px;
-            box-shadow: 0 0 25px rgba(0, 234, 255, 0.2);
-            padding: 24px; display: flex; flex-direction: column;
-            animation: fadeIn 0.5s ease-in-out;
-            margin-top: -120px; padding-top: 130px;
+        body.layout-settled #robot-wrapper {
+            margin-bottom: -120px;
+            max-width: 280px;
+            z-index: 10;
         }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        body.layout-settled #chat-container-wrapper {
+            max-width: 600px;
+        }
+        body.layout-settled #chat-container {
+            width: 100% !important;
+            height: auto !important;
+            padding: 130px 24px 24px !important;
+            max-height: none;
+            overflow: visible;
+        }
+        body.layout-settled #chat-content {
+            opacity: 1;
+        }
+        body.layout-settled .footer {
+            position: static;
+            margin-top: 20px;
+        }
 
-        #chat-history {
-            height: 35vh; min-height: 200px;
-            overflow-y: auto; border: 1px solid var(--frame-border-color);
-            background-color: var(--background-screen); padding: 15px; border-radius: 8px;
-            margin-bottom: 20px; display: flex; flex-direction: column-reverse; gap: 12px;
+        #intro-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1000; cursor: pointer;
+            display: flex; flex-direction: column;
+            justify-content: flex-end; align-items: center;
+            padding-bottom: 15vh;
+            color: #555; font-size: 14px;
+            animation: fadeInHint 2s 1s ease-in-out forwards;
+            opacity: 0;
         }
-        #chat-history::-webkit-scrollbar { width: 8px; }
-        #chat-history::-webkit-scrollbar-track { background: transparent; }
-        #chat-history::-webkit-scrollbar-thumb { background-color: var(--eye-color); border-radius: 10px; border: 2px solid var(--background-screen); }
-        .message { padding: 10px 16px; border-radius: 18px; max-width: 85%; word-wrap: break-word; animation: fadeIn 0.3s ease-in-out; line-height: 1.5; }
-        .user { background-color: var(--eye-color); color: var(--text-dark); align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
-        .bot { background-color: #383838; color: var(--text-light); align-self: flex-start; border-bottom-left-radius: 4px; }
+        @keyframes fadeInHint { to { opacity: 1; } }
 
+        /* بقیه استایل‌ها */
+        .robot-container { flex-shrink: 0; width:70vmin; height:70vmin; max-width:280px; max-height:280px; }
+        .robot-frame { width: 100%; height: 100%; background: linear-gradient(145deg, #2a2a2a, var(--background-medium)); border-radius: 22%; box-shadow: inset 0 0 15px rgba(0,0,0,0.5), 10px 10px 30px #0a0a0a, -10px -10px 30px #202020; display: flex; align-items: center; justify-content: center; position: relative; }
+        #faceCanvas { width: 80%; height: 75%; cursor: pointer; }
+        .engraved-text { position: absolute; bottom: 4.5%; left: 0; right: 0; text-align: center; font-size: clamp(10px, 4vmin, 18px); font-weight: bold; color: #252525; text-shadow: 1px 1px 1px #111, 0 0 0 #000, 0px 0px 3px #111; letter-spacing: 2px; pointer-events: none; }
+        #chat-content { display: flex; flex-direction: column; height: 100%; }
+        #chat-history { flex-grow: 1; min-height: 200px; height: 35vh; overflow-y: auto; border: 1px solid var(--frame-border-color); background-color: var(--background-screen); padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; flex-direction: column-reverse; gap: 12px; }
+        #chat-history::-webkit-scrollbar { width: 8px; } #chat-history::-webkit-scrollbar-track { background: transparent; } #chat-history::-webkit-scrollbar-thumb { background-color: var(--eye-color); border-radius: 10px; border: 2px solid var(--background-screen); }
+        .message { padding: 10px 16px; border-radius: 18px; max-width: 85%; word-wrap: break-word; line-height: 1.5; animation: fadeIn 0.3s ease-in-out; } .user { background-color: var(--eye-color); color: var(--text-dark); align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; } .bot { background-color: #383838; color: var(--text-light); align-self: flex-start; border-bottom-left-radius: 4px; }
         #chat-form { display: flex; flex-direction: column; align-items: center; gap: 15px; }
-        #user-input {
-            width: 100%; padding: 14px; border: 1px solid var(--frame-border-color);
-            border-radius: 8px; background-color: var(--background-screen);
-            color: var(--text-light); font-size: 16px; outline: none;
-            transition: all 0.3s; text-align: center;
-        }
+        #user-input { width: 100%; padding: 14px; border: 1px solid var(--frame-border-color); border-radius: 8px; background-color: var(--background-screen); color: var(--text-light); font-size: 16px; outline: none; transition: all 0.3s; text-align: center; }
         #user-input:focus { border-color: var(--eye-color); box-shadow: 0 0 10px var(--eye-glow-color); }
-        
         @keyframes placeholderWave { 0% { background-position: 100% 50%; } 100% { background-position: -100% 50%; } }
-        #user-input::placeholder {
-            color: var(--text-placeholder); background: linear-gradient(45deg, var(--text-placeholder) 35%, var(--text-light) 50%, var(--text-placeholder) 65%);
-            background-clip: text; -webkit-background-clip: text; color: transparent; background-size: 300% 100%; animation: placeholderWave 3s linear infinite;
-        }
-        
-        .button-frame {
-            width: 80px; height: 80px;
-            display: flex; justify-content: center; align-items: center;
-            background: linear-gradient(145deg, #303030, #181818);
-            border-radius: 24px;
-            box-shadow: inset 0 0 4px rgba(0,0,0,0.8), 8px 8px 16px #0a0a0a, -8px -8px 16px #282828;
-            transition: transform 0.2s;
-        }
-        .button-frame:hover:not(:has(button:disabled)) { transform: scale(1.05); }
-        
-        #chat-form button {
-            width: 60px; height: 60px; background-color: var(--eye-color); color: var(--text-dark);
-            border: none; border-radius: 18px; cursor: pointer; font-size: 28px; font-weight: bold;
-            display: flex; justify-content: center; align-items: center; transition: background-color 0.3s;
-        }
-        #chat-form button:disabled { background-color: #555; color: #888; cursor: not-allowed; }
-        
-        #loading-indicator { align-self: center; margin-bottom: -35px; order: -1; border: 4px solid #444; border-top: 4px solid var(--eye-color); border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; display: none; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .footer { position: relative; width: 100%; text-align: center; font-size: 12px; font-weight: bold; color: var(--eye-color); text-shadow: 0 0 8px var(--eye-glow-color); pointer-events: none; margin-top: 20px; padding-bottom: 10px; }
-    
-        #rotate-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--background-dark); color: var(--text-light); display: none; justify-content: center; align-items: center; text-align: center; z-index: 1000; }
-        @media screen and (max-height: 500px) and (orientation: landscape) { #rotate-overlay { display: flex; } }
+        #user-input::placeholder { color: var(--text-placeholder); background: linear-gradient(45deg, var(--text-placeholder) 35%, var(--text-light) 50%, var(--text-placeholder) 65%); background-clip: text; -webkit-background-clip: text; color: transparent; background-size: 300% 100%; animation: placeholderWave 3s linear infinite; }
+        .button-frame { width: 80px; height: 80px; display: flex; justify-content: center; align-items: center; background: linear-gradient(145deg, #303030, #181818); border-radius: 24px; box-shadow: inset 0 0 4px rgba(0,0,0,0.8), 8px 8px 16px #0a0a0a, -8px -8px 16px #282828; transition: transform 0.2s; } .button-frame:hover:not(:has(button:disabled)) { transform: scale(1.05); }
+        #chat-form button { width: 60px; height: 60px; background-color: var(--eye-color); color: var(--text-dark); border: none; border-radius: 18px; cursor: pointer; font-size: 28px; font-weight: bold; display: flex; justify-content: center; align-items: center; transition: background-color 0.3s; } #chat-form button:disabled { background-color: #555; color: #888; cursor: not-allowed; }
+        #loading-indicator { align-self: center; margin-bottom: -35px; order: -1; border: 4px solid #444; border-top: 4px solid var(--eye-color); border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; display: none; } @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .footer { position: absolute; bottom: 10px; width: 100%; left: 0; text-align: center; font-size: 12px; font-weight: bold; color: var(--eye-color); text-shadow: 0 0 8px var(--eye-glow-color); pointer-events: none; }
+        #rotate-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--background-dark); color: var(--text-light); display: none; justify-content: center; align-items: center; text-align: center; z-index: 1000; } @media screen and (max-height: 500px) and (orientation: landscape) { #rotate-overlay { display: flex; } }
+        body.punishment-rotate { transform: rotate(180deg); } body.punishment-blur { filter: blur(8px); }
+        @keyframes shake { 0%,100%{transform:translate(0,0)}10%{transform:translate(-2px,-3px)}20%{transform:translate(3px,2px)}30%{transform:translate(-3px,3px)}40%{transform:translate(2px,-2px)}50%{transform:translate(-3px,2px)}60%{transform:translate(3px,3px)}70%{transform:translate(-2px,-3px)}80%{transform:translate(3px,-2px)}90%{transform:translate(-2px,3px)} }
+        body.punishment-shake #app-container > *:not(#intro-overlay) { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
     </style>
 </head>
 <body>
     <div id="rotate-overlay"><div><h2>لطفاً دستگاه خود را به حالت عمودی بچرخانید</h2><p>این صفحه برای نمایش عمودی بهینه شده است.</p></div></div>
-    <div id="main-content">
-        <div class="robot-container"><div class="robot-frame"><canvas id="faceCanvas" width="300" height="300"></canvas><div class="engraved-text">ROBO☬SHΞN™</div></div></div>
-        <div id="chat-container">
-            <div id="chat-history"></div>
-            <form id="chat-form">
-                <div id="loading-indicator"></div>
-                <input type="text" id="user-input" placeholder="بنال بینم دیگه چی میخوای..." autocomplete="off">
-                <div class="button-frame"><button type="submit">☬</button></div>
-            </form>
+    
+    <div id="app-container">
+        <div id="intro-overlay"> ناموساً دو دقیقه اومدیم بخوابیم بیدارمون نکن <span>  
+    </span></div>
+        <div id="robot-wrapper">
+            <div class="robot-container"><div class="robot-frame"><canvas id="faceCanvas" width="300" height="300"></canvas><div class="engraved-text">ROBO☬SHΞN™</div></div></div>
         </div>
-        <footer class="footer">Exclusive ☬ SHΞN™</footer>
+        <div id="chat-container-wrapper">
+            <div id="chat-container">
+                <div id="chat-content">
+                    <div id="chat-history"></div>
+                    <form id="chat-form">
+                        <div id="loading-indicator"></div>
+                        <input type="text" id="user-input" placeholder="بنال بینم دیگه چی میخوای..." autocomplete="off">
+                        <div class="button-frame"><button type="submit">☬</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <footer class="footer"></footer>
     </div>
 <script>
 class RobotFace {
     constructor(canvas, chatInterface) {
-        this.canvas = canvas; this.ctx = canvas.getContext("2d"); this.W = canvas.width; this.H = canvas.height;
-        this.chatInterface = chatInterface;
-        this.lookX=0; this.lookY=0; this.blinkProgress=1; this.isBlinking=false; this.lastBlinkTime=Date.now();
-        this.currentExpression="neutral"; this.expressionTimeout=null;
-        this.isSleeping=false; this.lastInteractionTime=Date.now(); this.sleepTimeout=20000;
-        this.isFocusing=false; this.focusEye='left'; this.focusScale=0.65; this.focusProgress=0;
-        this.lastFocusTime=Date.now(); this.nextFocusDelay=5000+Math.random()*5000;
-        this.isThinking=false;
-        this.hitCount=0; this.isPunished=false; this.punishmentType=null; this.punishmentResetTimer=null;
-        this.initInteractions(); requestAnimationFrame(this.render.bind(this));
+        this.canvas=canvas;this.ctx=canvas.getContext("2d");this.W=canvas.width;this.H=canvas.height;
+        this.chatInterface=chatInterface;this.lookX=0;this.lookY=0;this.blinkProgress=1;this.isBlinking=false;this.lastBlinkTime=Date.now();
+        this.currentExpression="neutral";this.expressionTimeout=null;this.isSleeping=true;this.lastInteractionTime=Date.now();
+        this.sleepTimeout=20000;this.isFocusing=false;this.focusEye='left';this.focusScale=0.65;this.focusProgress=0;
+        this.lastFocusTime=Date.now();this.nextFocusDelay=5000+Math.random()*5000;
+        this.isThinking=false;this.hitCount=0;this.isPunished=false;this.punishmentType=null;this.punishmentResetTimer=null;
+        this.initInteractions();requestAnimationFrame(this.render.bind(this));
     }
-    render() {
-        this.ctx.imageSmoothingEnabled = false; this.ctx.clearRect(0, 0, this.W, this.H);
-        this.drawFaceplate();
-        const now = Date.now();
-        if (now-this.lastInteractionTime>this.sleepTimeout && !this.isThinking && this.currentExpression==='neutral' && !this.isPunished) this.isSleeping = true;
-        if (this.isSleeping) this.drawSleepEyes();
-        else if (this.isThinking) this.drawThinkingEyes(now);
-        else if (this.isPunished && this.punishmentType === 'redEyes') this.drawRedEyes();
-        else {
-            if (this.currentExpression==='neutral'&&!this.isFocusing&&!this.isBlinking&&now-this.lastFocusTime>this.nextFocusDelay) this.startFocus();
-            if (!this.isBlinking&&!this.isFocusing&&this.currentExpression==='neutral'&&now-this.lastBlinkTime>3000+Math.random()*2000) this.blink();
-            this.drawExpression();
-        }
-        requestAnimationFrame(this.render.bind(this));
-    }
-    drawFaceplate() { const ctx=this.ctx;const r=60;ctx.fillStyle='#050505';ctx.strokeStyle='#333333';ctx.lineWidth=4;ctx.beginPath();ctx.roundRect(0,0,this.W,this.H,r);ctx.fill();ctx.stroke(); }
-    drawExpression() {
-        const eyeW=100, eyeH=100, eyeR=30, eyeY=this.H/2+this.lookY;
-        const lCX=this.W*0.3+this.lookX, rCX=this.W*0.7+this.lookX;
-        if (this.currentExpression==='heart') { this.drawPixelHeart(lCX, eyeY, 80); this.drawPixelHeart(rCX, eyeY, 80); }
-        else {
-            let lS=1, rS=1;
-            if(this.isFocusing) { const s=1-(1-this.focusScale)*this.focusProgress; if(this.focusEye==='left')lS=s;else rS=s; }
-            const currentEyeH=eyeH*this.blinkProgress;
-            this.drawEye(lCX, eyeY, eyeW*lS, currentEyeH*lS, eyeR*lS, '#00eaff', 'rgba(0,234,255,0.5)');
-            this.drawEye(rCX, eyeY, eyeW*rS, currentEyeH*rS, eyeR*rS, '#00eaff', 'rgba(0,234,255,0.5)');
-        }
-    }
-    drawEye(cx, cy, w, h, r, color, glowColor) { const ctx=this.ctx;ctx.shadowBlur=25;ctx.shadowColor=glowColor;ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(cx-w/2, cy-h/2, w, h, r);ctx.fill();ctx.shadowBlur=0;ctx.globalCompositeOperation='source-atop';ctx.fillStyle='rgba(0,0,0,0.3)'; for(let i=0;i<h;i+=3){ctx.fillRect(cx-w/2,cy-h/2+i,w,1.5);}ctx.globalCompositeOperation='source-over'; }
-    drawRedEyes() {
-        const eyeW=110, eyeH=110, eyeR=35, eyeY=this.H/2+this.lookY;
-        const lCX=this.W*0.3+this.lookX, rCX=this.W*0.7+this.lookX;
-        this.drawEye(lCX, eyeY, eyeW, eyeH, eyeR, '#ff1100', 'rgba(255,17,0,0.7)');
-        this.drawEye(rCX, eyeY, eyeW, eyeH, eyeR, '#ff1100', 'rgba(255,17,0,0.7)');
-    }
-    drawPixelHeart(cx,cy,s){const b=[[0,1,1,0,0,1,1,0],[1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,0],[0,0,1,1,1,1,0,0],[0,0,0,1,1,0,0,0]];const pS=s/b[0].length;const tW=pS*b[0].length,tH=pS*b.length;const sX=cx-tW/2,sY=cy-tH/2;this.ctx.fillStyle='#FF99B4';this.ctx.shadowColor='rgba(255,153,180,0.7)';this.ctx.shadowBlur=15;b.forEach((r,y)=>r.forEach((p,x)=>{if(p===1)this.ctx.fillRect(sX+x*pS,sY+y*pS,pS,pS);}));this.ctx.shadowBlur=0;}
-    drawSleepEyes(){const y=this.H/2,w=100,h=6;this.ctx.fillStyle='#00eaff';this.ctx.shadowColor='rgba(0,234,255,0.5)';this.ctx.shadowBlur=15;this.ctx.fillRect(this.W*0.3-w/2,y-h/2,w,h);this.ctx.fillRect(this.W*0.7-w/2,y-h/2,w,h);this.ctx.shadowBlur=0;}
-    drawThinkingEyes(now){const eyeY=this.H/2+this.lookY,lCX=this.W*0.3+this.lookX,rCX=this.W*0.7+this.lookX,radius=40;const angle=(now/500)%(2*Math.PI);[lCX,rCX].forEach(cx=>{this.ctx.strokeStyle='rgba(0, 234, 255, 0.7)';this.ctx.lineWidth=8;this.ctx.shadowColor='rgba(0, 234, 255, 0.7)';this.ctx.shadowBlur=15;this.ctx.beginPath();this.ctx.arc(cx,eyeY,radius,angle,angle+Math.PI*1.5);this.ctx.stroke();this.ctx.shadowBlur=0;});}
-    startFocus(){if(this.isFocusing)return;this.isFocusing=true;this.focusEye=Math.random()<0.5?'left':'right';const d=400,h=3000;const a=(t,s=t,i='in')=>{const e=t-s;if(i==='in'){this.focusProgress=Math.min(1,e/d);if(e>=d)setTimeout(()=>requestAnimationFrame(t=>a(t,t,'out')),h);else requestAnimationFrame(t=>a(t,s,i));}else{this.focusProgress=Math.max(0,1-(e/d));if(e>=d){this.isFocusing=false;this.lastFocusTime=Date.now();this.nextFocusDelay=5000+Math.random()*5000;}else requestAnimationFrame(t=>a(t,s,i));}};requestAnimationFrame(a);}
-    initInteractions() {
-        const getP=e=>({x:e.clientX||e.touches?.[0]?.clientX||0,y:e.clientY||e.touches?.[0]?.clientY||0});
-        const look=(x,y)=>{this.wakeUp();const max=15;const bcr=document.body.getBoundingClientRect();this.lookX=(x/bcr.width-0.5)*2*max;this.lookY=(y/bcr.height-0.5)*2*max;};
-        let isDown=false;let startPos={x:0,y:0};let startTime=0;
-        const onDown=e=>{if(e.target.closest('#chat-container')) return; isDown=true;const p=getP(e);startPos=p;startTime=Date.now();};
-        const onMove=e=>{const p=getP(e);look(p.x,p.y);};
-        const onUp=e=>{
-            if(!isDown) return; isDown=false;
-            const p=getP(e.changedTouches?.[0]||e); const dist=Math.hypot(p.x-startPos.x,p.y-startPos.y); const dur=Date.now()-startTime;
-            if (e.target.id === 'faceCanvas') {
-                if (dur < 200 && dist < 10) this.handleHit();
-                else if (dur > 200 && dur < 600 && dist > 20) this.triggerHeartExpression();
-            }
-        };
-        window.addEventListener('mousedown',onDown);window.addEventListener('touchstart',onDown,{passive:true});
-        window.addEventListener('mousemove',onMove);window.addEventListener('touchmove',onMove,{passive:true});
-        window.addEventListener('mouseup',onUp);window.addEventListener('touchend',onUp);
-    }
-    handleHit() {
-        this.wakeUp(); clearTimeout(this.punishmentResetTimer);
-        this.hitCount++;
-        if (this.hitCount === 1) { this.chatInterface.addMessage('به من دست نزن', 'bot'); }
-        else { this.triggerPunishment(); }
-        this.punishmentResetTimer = setTimeout(() => this.resetPunishment(), 10000);
-    }
-    triggerPunishment() {
-        this.resetVisuals(); this.isPunished = true;
-        const punishments = ['redEyes', 'rotate', 'shake', 'blur'];
-        this.punishmentType = punishments[Math.floor(Math.random() * punishments.length)];
-        if (this.punishmentType !== 'redEyes') document.body.classList.add(`punishment-${this.punishmentType}`);
-    }
-    resetVisuals() { document.body.classList.remove('punishment-rotate', 'punishment-shake', 'punishment-blur'); }
-    resetPunishment() {
-        this.isPunished = false; this.punishmentType = null; this.hitCount = 0;
-        this.resetVisuals();
-    }
-    wakeUp() { if (this.isSleeping) this.isSleeping = false; this.lastInteractionTime = Date.now(); }
-    blink() { if(this.isBlinking) return; this.isBlinking = true; this.lastBlinkTime = Date.now(); let s=null; const d=150; const a=t=>{if(!s)s=t; const e=t-s; if(e<d)this.blinkProgress=1-(e/d); else if(e<d*2)this.blinkProgress=(e-d)/d; else{this.blinkProgress=1;this.isBlinking=false;return;} requestAnimationFrame(a);}; requestAnimationFrame(a); }
-    triggerHeartExpression() { this.wakeUp(); clearTimeout(this.expressionTimeout); this.currentExpression='heart'; this.expressionTimeout=setTimeout(()=>{this.currentExpression='neutral';},4000); }
-    startThinking(){ this.wakeUp(); this.isThinking=true; }
-    stopThinking(){ this.isThinking=false; }
+    render(){this.ctx.imageSmoothingEnabled=false;this.ctx.clearRect(0,0,this.W,this.H);this.drawFaceplate();const now=Date.now();if(this.isSleeping)this.drawSleepEyes();else if(this.isThinking)this.drawThinkingEyes(now);else if(this.isPunished&&this.punishmentType==='redEyes')this.drawRedEyes();else{if(now-this.lastInteractionTime>this.sleepTimeout&&!this.isThinking&&this.currentExpression==='neutral'&&!this.isPunished){this.isSleeping=true;return}if(this.currentExpression==='neutral'&&!this.isFocusing&&!this.isBlinking&&now-this.lastFocusTime>this.nextFocusDelay)this.startFocus();if(!this.isBlinking&&!this.isFocusing&&this.currentExpression==='neutral'&&now-this.lastBlinkTime>3000+Math.random()*2000)this.blink();this.drawExpression()}requestAnimationFrame(this.render.bind(this))}
+    playFlickerAnimation(callback){this.isSleeping=false;let flickerCount=0;const maxFlickers=6;const flicker=()=>{if(flickerCount>=maxFlickers){if(callback)callback();return}this.blinkProgress=Math.random()>0.3?1:0.1;flickerCount++;setTimeout(flicker,50+Math.random()*50)};flicker()}
+    drawFaceplate(){const c=this.ctx,r=60;c.fillStyle='#050505';c.strokeStyle='#333333';c.lineWidth=4;c.beginPath();c.roundRect(0,0,this.W,this.H,r);c.fill();c.stroke()}
+    drawExpression(){const eW=100,eH=100,eR=30,eY=this.H/2+this.lookY;const lCX=this.W*0.3+this.lookX,rCX=this.W*0.7+this.lookX;if(this.currentExpression==='heart'){this.drawPixelHeart(lCX,eY,80);this.drawPixelHeart(rCX,eY,80)}else{let lS=1,rS=1;if(this.isFocusing){const s=1-(1-this.focusScale)*this.focusProgress;if(this.focusEye==='left')lS=s;else rS=s}const cH=eH*this.blinkProgress;this.drawEye(lCX,eY,eW*lS,cH*lS,eR*lS,'#00eaff','rgba(0,234,255,0.5)');this.drawEye(rCX,eY,eW*rS,cH*rS,eR*rS,'#00eaff','rgba(0,234,255,0.5)')}}
+    drawEye(cx,cy,w,h,r,co,gl){const c=this.ctx;c.shadowBlur=25;c.shadowColor=gl;c.fillStyle=co;c.beginPath();c.roundRect(cx-w/2,cy-h/2,w,h,r);c.fill();c.shadowBlur=0;c.globalCompositeOperation='source-atop';c.fillStyle='rgba(0,0,0,0.3)';for(let i=0;i<h;i+=3){c.fillRect(cx-w/2,cy-h/2+i,w,1.5)}c.globalCompositeOperation='source-over'}
+    drawRedEyes(){const eW=110,eH=110,eR=35,eY=this.H/2+this.lookY;const lCX=this.W*0.3+this.lookX,rCX=this.W*0.7+this.lookX;this.drawEye(lCX,eY,eW,eH,eR,'#ff1100','rgba(255,17,0,0.7)');this.drawEye(rCX,eY,eW,eH,eR,'#ff1100','rgba(255,17,0,0.7)')}
+    drawPixelHeart(cx,cy,s){const b=[[0,1,1,0,0,1,1,0],[1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,0],[0,0,1,1,1,1,0,0],[0,0,0,1,1,0,0,0]];const pS=s/b[0].length;const tW=pS*b[0].length,tH=pS*b.length;const sX=cx-tW/2,sY=cy-tH/2;this.ctx.fillStyle='#FF99B4';this.ctx.shadowColor='rgba(255,153,180,0.7)';this.ctx.shadowBlur=15;b.forEach((r,y)=>r.forEach((p,x)=>{if(p===1)this.ctx.fillRect(sX+x*pS,sY+y*pS,pS,pS)}));this.ctx.shadowBlur=0}
+    drawSleepEyes(){const y=this.H/2,w=100,h=6;this.ctx.fillStyle='#00eaff';this.ctx.shadowColor='rgba(0,234,255,0.5)';this.ctx.shadowBlur=15;this.ctx.fillRect(this.W*0.3-w/2,y-h/2,w,h);this.ctx.fillRect(this.W*0.7-w/2,y-h/2,w,h);this.ctx.shadowBlur=0}
+    drawThinkingEyes(now){const eY=this.H/2+this.lookY,lCX=this.W*0.3+this.lookX,rCX=this.W*0.7+this.lookX,rad=40;const ang=(now/500)%(2*Math.PI);[lCX,rCX].forEach(cx=>{this.ctx.strokeStyle='rgba(0,234,255,0.7)';this.ctx.lineWidth=8;this.ctx.shadowColor='rgba(0,234,255,0.7)';this.ctx.shadowBlur=15;this.ctx.beginPath();this.ctx.arc(cx,eY,rad,ang,ang+Math.PI*1.5);this.ctx.stroke();this.ctx.shadowBlur=0})}
+    startFocus(){if(this.isFocusing)return;this.isFocusing=true;this.focusEye=Math.random()<0.5?'left':'right';const d=400,h=3000;const a=(t,s=t,i='in')=>{const e=t-s;if(i==='in'){this.focusProgress=Math.min(1,e/d);if(e>=d)setTimeout(()=>requestAnimationFrame(t=>a(t,t,'out')),h);else requestAnimationFrame(t=>a(t,s,i))}else{this.focusProgress=Math.max(0,1-(e/d));if(e>=d){this.isFocusing=false;this.lastFocusTime=Date.now();this.nextFocusDelay=5000+Math.random()*5000}else requestAnimationFrame(t=>a(t,s,i))}};requestAnimationFrame(a)}
+    initInteractions(){const getP=e=>({x:e.clientX||e.touches?.[0]?.clientX||0,y:e.clientY||e.touches?.[0]?.clientY||0});const look=(x,y)=>{if(this.isSleeping)return;this.wakeUp();const max=15;const bcr=document.body.getBoundingClientRect();this.lookX=(x/bcr.width-0.5)*2*max;this.lookY=(y/bcr.height-0.5)*2*max};let isDown=false;let startPos={x:0,y:0};let startTime=0;const onDown=e=>{if(e.target.closest('#chat-container-wrapper'))return;isDown=true;const p=getP(e);startPos=p;startTime=Date.now()};const onMove=e=>{const p=getP(e);look(p.x,p.y)};const onUp=e=>{if(!isDown)return;isDown=false;const p=getP(e.changedTouches?.[0]||e);const dist=Math.hypot(p.x-startPos.x,p.y-startPos.y);const dur=Date.now()-startTime;if(e.target.id==='faceCanvas'){if(dur<200&&dist<10)this.handleHit();else if(dur>200&&dur<600&&dist>20)this.triggerHeartExpression()}};window.addEventListener('mousedown',onDown);window.addEventListener('touchstart',onDown,{passive:true});window.addEventListener('mousemove',onMove);window.addEventListener('touchmove',onMove,{passive:true});window.addEventListener('mouseup',onUp);window.addEventListener('touchend',onUp)}
+    handleHit(){this.wakeUp();clearTimeout(this.punishmentResetTimer);this.hitCount++;if(this.hitCount===1){this.chatInterface.addMessage('به من دست نزن','bot')}else{this.triggerPunishment()}this.punishmentResetTimer=setTimeout(()=>this.resetPunishment(),10000)}
+    triggerPunishment(){this.resetVisuals();this.isPunished=true;const p=['redEyes','rotate','shake','blur'];this.punishmentType=p[Math.floor(Math.random()*p.length)];if(this.punishmentType!=='redEyes')document.body.classList.add(`punishment-${this.punishmentType}`)}
+    resetVisuals(){document.body.classList.remove('punishment-rotate','punishment-shake','punishment-blur')}
+    resetPunishment(){this.isPunished=false;this.punishmentType=null;this.hitCount=0;this.resetVisuals()}
+    wakeUp(){if(this.isSleeping)this.isSleeping=false;this.lastInteractionTime=Date.now()}
+    blink(){if(this.isBlinking)return;this.isBlinking=true;this.lastBlinkTime=Date.now();let s=null;const d=150;const a=t=>{if(!s)s=t;const e=t-s;if(e<d)this.blinkProgress=1-(e/d);else if(e<d*2)this.blinkProgress=(e-d)/d;else{this.blinkProgress=1;this.isBlinking=false;return}requestAnimationFrame(a)};requestAnimationFrame(a)}
+    triggerHeartExpression(){this.wakeUp();clearTimeout(this.expressionTimeout);this.currentExpression='heart';this.expressionTimeout=setTimeout(()=>{this.currentExpression='neutral'},4000)}
+    startThinking(){this.wakeUp();this.isThinking=true}
+    stopThinking(){this.isThinking=false}
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const chatForm=document.getElementById('chat-form'), userInput=document.getElementById('user-input'), chatHistory=document.getElementById('chat-history'), sendButton=chatForm.querySelector('button'), loadingIndicator=document.getElementById('loading-indicator');
-    const addMessageToChat=(msg, sender)=>{const div=document.createElement('div');div.classList.add('message',sender);div.textContent=msg;chatHistory.prepend(div);};
-    const face=new RobotFace(document.getElementById('faceCanvas'), {addMessage: addMessageToChat});
+    const chatForm=document.getElementById('chat-form'),userInput=document.getElementById('user-input'),chatHistory=document.getElementById('chat-history'),sendButton=chatForm.querySelector('button'),loadingIndicator=document.getElementById('loading-indicator'),footer=document.querySelector('.footer');
+    const addMessageToChat=(msg,sender)=>{const div=document.createElement('div');div.classList.add('message',sender);div.textContent=msg;chatHistory.prepend(div)};
+    const face=new RobotFace(document.getElementById('faceCanvas'),{addMessage:addMessageToChat});
+    const introOverlay=document.getElementById('intro-overlay'),appContainer=document.getElementById('app-container');
+    let hasIntroPlayed=false;
+
+    introOverlay.addEventListener('click', () => {
+        if(hasIntroPlayed)return;hasIntroPlayed=true;
+        introOverlay.style.opacity='0';setTimeout(()=>introOverlay.style.display='none',500);
+        
+        face.playFlickerAnimation(()=>{
+            appContainer.classList.add('intro-played');
+            // زمان‌بندی برای تغییر چیدمان پس از اتمام انیمیشن
+            setTimeout(() => {
+                document.body.classList.add('layout-settled');
+                footer.textContent = 'Exclusive ☬ SHΞN™';
+            }, 3500); // این زمان باید با طول کل انیمیشن CSS هماهنگ باشد
+        });
+    }, { once: true });
+
     let isFirstMessage=true;
     chatForm.addEventListener('submit', async e => {
         e.preventDefault();const userMessage=userInput.value.trim();if(!userMessage)return;
@@ -263,8 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const headers={'Content-Type':'application/json'};if(isFirstMessage)headers['X-First-Message']='true';
             const response=await fetch('/.netlify/functions/chat',{method:'POST',headers:headers,body:JSON.stringify({userMessage,userIp:ipData.ip,currentTime:new Date().toLocaleTimeString('fa-IR')})});
             const data=await response.json();
-            if(response.ok)addMessageToChat(data.response,'bot');else{addMessageToChat('متأسفانه خطایی رخ داد.','bot');console.error('Error:',data);}
-        } catch (error){console.error('Error:',error);addMessageToChat('خطایی در ارتباط رخ داد.','bot');}
+            if(response.ok)addMessageToChat(data.response,'bot');else{addMessageToChat('  یه جای کار می‌لنگه الان به شروین می‌گم درست کنه.','bot');console.error('Error:',data);}
+        } catch (error){console.error('Error:',error);addMessageToChat('اندکی بگایی در اتصالات کشف شد اینترنت خودتو چک کن.','bot');}
         finally {sendButton.disabled=false;loadingIndicator.style.display='none';face.stopThinking();isFirstMessage=false;}
     });
 });
