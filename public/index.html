@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>چت بات با Groq و Netlify</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #f0f2f5; }
+        #chat-container { width: 80%; max-width: 600px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); padding: 20px; }
+        #chat-history { height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 4px; display: flex; flex-direction: column-reverse; }
+        .message { margin-bottom: 10px; padding: 8px 12px; border-radius: 12px; max-width: 70%; word-wrap: break-word; }
+        .user { background-color: #007bff; color: #fff; align-self: flex-end; }
+        .bot { background-color: #e9ecef; color: #000; align-self: flex-start; }
+        #chat-form { display: flex; }
+        #user-input { flex-grow: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-left: 10px; }
+        button { padding: 10px 20px; background-color: #28a745; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <h1>چت بات Groq</h1>
+        <div id="chat-history"></div>
+        <form id="chat-form">
+            <input type="text" id="user-input" placeholder="پیام خود را بنویسید..." autocomplete="off">
+            <button type="submit">ارسال</button>
+        </form>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
