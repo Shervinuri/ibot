@@ -52,7 +52,7 @@ exports.handler = async (event, context) => {
 
     const chatCompletion = await groqInstance.chat.completions.create({
       messages: messages,
-      model: "llama3-8b-8192",
+      model: "llama3-70b-8192",
     });
 
     let botResponse = chatCompletion.choices[0]?.message?.content || "An error occurred.";
